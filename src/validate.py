@@ -19,7 +19,7 @@ def eval_model(model, testload, device='cpu'):
             features = features.to(device)
             labels = labels
             logits = model(features)
-            outputs = nn.Sigmoid(logits)
+            outputs = nn.Sigmoid()(logits)
             outputs = outputs.squeeze().cpu()
             roc_auc.append(roc_auc_score(labels, outputs))
             outputs = outputs.round()
@@ -52,7 +52,7 @@ def eval_multi_model(model, testload, device='cpu', targeted_AB='ly16'):
                 features = features.to(device)
                 labels = labels
                 logits = model(features, antibody)
-                outputs = nn.Sigmoid(logits)
+                outputs = nn.Sigmoid()(logits)
                 outputs = outputs.squeeze().cpu()
                 roc_auc[antibody].append(roc_auc_score(labels, outputs))
                 outputs = outputs.round()
