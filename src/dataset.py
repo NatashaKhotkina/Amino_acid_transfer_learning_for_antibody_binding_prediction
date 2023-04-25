@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
-from code.one_hot import encoding_func
+from src.one_hot import encoding_func
 
 
 class MyDataset(Dataset):
