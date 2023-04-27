@@ -33,12 +33,12 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         print(f"Epoch={epoch} loss={loss_hist[epoch]:.4f}")
 
 
-def optuna_prune(model, valload, device, trial, ep):
-    *_, mean_roc_auc = eval_model(model=model, testload=valload, device=device)
-    trial.report(mean_roc_auc, ep)
-
-    if trial.should_prune():  # Stop trial if the metric for this epoch is bad.
-        raise optuna.TrialPruned()
+# def optuna_prune(model, valload, device, trial, ep):
+#     *_, mean_roc_auc = eval_model(model=model, testload=valload, device=device)
+#     trial.report(mean_roc_auc, ep)
+#
+#     if trial.should_prune():  # Stop trial if the metric for this epoch is bad.
+#         raise optuna.TrialPruned()
 
 
 def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
@@ -51,8 +51,8 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=
     for ep in range(num_epochs):
         train_epoch(model=model, trainload=trainload, epoch=ep, criterion=criterion, optimizer=optimizer,
                     loss_hist=loss_hist, print_epoch=print_epoch, device=device)
-        if optuna_mode:
-            optuna_prune(model, valload, device, trial, ep)
+        # if optuna_mode:
+        #     optuna_prune(model, valload, device, trial, ep)
 
 
 def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
@@ -109,8 +109,8 @@ def train_multi_model(model, trainload, num_epochs=20, learning_rate=0.001, crit
         train_epoch_multi(model=model, trainload=trainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
                           optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
 
-        if optuna_mode:
-            optuna_prune(model, valload, device, trial, ep)
+        # if optuna_mode:
+        #     optuna_prune(model, valload, device, trial, ep)
 
 
 
