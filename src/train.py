@@ -9,6 +9,7 @@ from src.validate import eval_model
 
 def train_epoch(model, trainload, epoch, criterion, optimizer,
                 loss_hist, print_epoch=True, device='cpu'):
+    model.train()
     hist_loss = 0
     for _, data in enumerate(trainload, 0):  # get batch
         # parse batch
@@ -42,7 +43,6 @@ def optuna_prune(model, valload, device, trial, ep):
 
 def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
                 optim=torch.optim.Adam, print_epoch=True, device='cpu', optuna_mode=False, valload=None, trial=None):
-    model.train()
 
     criterion = criterion()
     optimizer = optim(model.parameters(), lr=learning_rate)
