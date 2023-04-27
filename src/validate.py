@@ -4,8 +4,10 @@ import torch
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from torch import nn
 
+from src.models import LSTMMultiModel
 
-def eval_model(model, testload, device='cpu'):
+
+def eval_model(model, testload, multi_task_targeted_AB=None, device='cpu'):
     accuracy = []
     precision = []
     recall = []
@@ -17,8 +19,10 @@ def eval_model(model, testload, device='cpu'):
         for data in testload:
             features, labels = data
             features = features.to(device)
-            labels = labels
-            logits = model(features)
+            if multi_task_targeted_AB and isinstance(model, LSTMMultiModel):
+                logits = model(features, multi_task_targeted_AB)
+            else:
+                logits = model(features)
             outputs = nn.Sigmoid()(logits)
             outputs = outputs.squeeze().cpu()
             roc_auc.append(roc_auc_score(labels, outputs))
