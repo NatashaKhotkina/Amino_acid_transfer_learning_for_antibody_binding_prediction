@@ -100,7 +100,7 @@ def train_multi_model(model, trainload, num_epochs=20, learning_rate=0.001, crit
                           optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
 
     for ep in range(target_num_epochs):
-        train_epoch(model=model, trainload=trainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
+        train_epoch(model=model, trainload=trainload[targeted_AB], epoch=ep, criterion=criterion, loss_hist=loss_hist,
                     optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
 
 
