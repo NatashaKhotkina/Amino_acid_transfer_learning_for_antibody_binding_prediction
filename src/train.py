@@ -1,14 +1,11 @@
 from collections import defaultdict
 
-import optuna
 import torch
 from torch import nn
 
-from src.validate import eval_model
-
 
 def train_epoch(model, trainload, epoch, criterion, optimizer,
-                loss_hist, print_epoch=True, device='cpu'):
+                loss_hist, print_epoch=True, device='cpu', targeted_AB=None):
     model.train()
     hist_loss = 0
     for _, data in enumerate(trainload, 0):  # get batch
@@ -19,7 +16,10 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         # sets the gradients of all optimized tensors to zero.
         optimizer.zero_grad()
         # get outputs
-        outputs = model(features)
+        if targeted_AB:
+            outputs = model(features, targeted_AB)
+        else:
+            outputs = model(features)
         # calculate loss
         loss = criterion(outputs, labels.unsqueeze(1))
         # calculate gradients
@@ -33,16 +33,8 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         print(f"Epoch={epoch} loss={loss_hist[epoch]:.4f}")
 
 
-# def optuna_prune(model, valload, device, trial, ep):
-#     *_, mean_roc_auc = eval_model(model=model, testload=valload, device=device)
-#     trial.report(mean_roc_auc, ep)
-#
-#     if trial.should_prune():  # Stop trial if the metric for this epoch is bad.
-#         raise optuna.TrialPruned()
-
-
 def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
-                optim=torch.optim.Adam, print_epoch=True, device='cpu', optuna_mode=False, valload=None, trial=None):
+                optim=torch.optim.Adam, print_epoch=True, device='cpu'):
 
     criterion = criterion()
     optimizer = optim(model.parameters(), lr=learning_rate)
@@ -51,8 +43,6 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=
     for ep in range(num_epochs):
         train_epoch(model=model, trainload=trainload, epoch=ep, criterion=criterion, optimizer=optimizer,
                     loss_hist=loss_hist, print_epoch=print_epoch, device=device)
-        # if optuna_mode:
-        #     optuna_prune(model, valload, device, trial, ep)
 
 
 def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
@@ -98,7 +88,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
 
 def train_multi_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
                       optim=torch.optim.Adam, print_epoch=False, device='cpu', targeted_AB='ly16',
-                      optuna_mode=False, valload=None, trial=None):
+                      target_num_epochs=0):
     model.train()
 
     criterion = criterion()
@@ -109,8 +99,10 @@ def train_multi_model(model, trainload, num_epochs=20, learning_rate=0.001, crit
         train_epoch_multi(model=model, trainload=trainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
                           optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
 
-        # if optuna_mode:
-        #     optuna_prune(model, valload, device, trial, ep)
+    for ep in range(target_num_epochs):
+        train_epoch(model=model, trainload=trainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
+                    optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
+
 
 
 
