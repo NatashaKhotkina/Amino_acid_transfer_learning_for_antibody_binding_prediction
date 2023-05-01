@@ -153,7 +153,7 @@ def train_multi_model_3ab(model, trainload, num_epochs=20, learning_rate=0.001, 
         pretrainload[ab] = trainload[ab]
     for ep in range(num_epochs):
         train_epoch_multi_3ab(model=model, trainload=pretrainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
-                              optimizer=optimizer, print_epoch=print_epoch, device=device)
+                              optimizer=optimizer, print_epoch=print_epoch, device=device, pretrain_ab=pretrain_ab)
 
     for ep in range(target_num_epochs):
         train_epoch(model=model, trainload=trainload[targeted_AB], epoch=ep, criterion=criterion, loss_hist=loss_hist,
