@@ -23,6 +23,7 @@ ROC AUC depends on size of train set. It grows with the increase of the train da
 Pretraining on other antibodies with multi-task approach improves metrics, but the increase is small.
 
 ![img](images/roc_auc.png)
+t-test for two related samples, n=40. 
 
 ## Data and packages
 ### Training and test data
