@@ -37,4 +37,4 @@ All reusable and non-interactive code is stored in **src** package.
 
 ### Launch notebook copy in Google Colab (web)
 
-https://github.com/NatashaKhotkina/Amino_acid_transfer_learning_for_antibody_binding_prediction/blob/main/Antibody_binding.ipynb
+https://colab.research.google.com/github/NatashaKhotkina/Amino_acid_transfer_learning_for_antibody_binding_prediction/blob/main/Antibody_binding.ipynb
