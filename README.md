@@ -18,7 +18,7 @@ Multi-task is a machine learning approach where the same information is used for
 ROC AUC depends on size of train set. It grows with the increase of the train dataset, but then reaches a plateau.
 
 ![img](images/train_size.png)
-Mean &pm SD, n = 20.
+Mean ± SD, n = 20.
 
 ### LSTM vs Multi-task LSTM
 Pretraining on other antibodies with multi-task approach improves metrics, but the increase is small.
