@@ -9,7 +9,7 @@ Minimize the size of a train dataset with transfer learning or other methods.
 
 ## Methods:
 
-### Multi-task:
+### Multi-task
 Multi-task is a machine learning approach where the same information is used for multiple tasks. In current work, predicting escape from different antibodies for the same RBD sequence is considered as "multiple task".
 ![img](images/multi_task.jpg)
 
@@ -19,7 +19,7 @@ ROC AUC depends on size of train set. It grows with the increase of the train da
 
 ![img](images/train_size.png)
 
-### LSTM vs Multi-task LSTM.
+### LSTM vs Multi-task LSTM
 Pretraining on other antibodies with multi-task approach improves metrics, but the increase is small.
 
 ![img](images/roc_auc.png)
