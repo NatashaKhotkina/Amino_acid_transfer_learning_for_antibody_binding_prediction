@@ -23,3 +23,18 @@ ROC AUC depends on size of train set. It grows with the increase of the train da
 Pretraining on other antibodies with multi-task approach improves metrics, but the increase is small.
 
 ![img](images/roc_auc.png)
+
+## Data and packages
+### Training and test data
+
+All trainand test data used in this project is stored in **data** directory.
+
+### Functions and classes
+
+All reusable and non-interactive code is stored in **src** package.
+
+## Usage
+
+### Launch notebook copy in Google Colab (web)
+
+https://github.com/NatashaKhotkina/Amino_acid_transfer_learning_for_antibody_binding_prediction/blob/main/Antibody_binding.ipynb
