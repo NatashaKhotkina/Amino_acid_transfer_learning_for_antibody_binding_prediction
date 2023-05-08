@@ -11,7 +11,7 @@ Minimize the size of a train dataset with transfer learning or other methods.
 
 ### Multi-task:
 Multi-task is a machine learning approach where the same information is used for multiple tasks. In current work, predicting escape from different antibodies for the same RBD sequence is considered as "multiple tasks".
-![img](https://github.com/NatashaKhotkina/Amino_acid_transfer_learning_for_antibody_binding_prediction/tree/main/images/multi_task.jpg)
+![img](images/multi_task.jpg)
 
 ## Results:
 
