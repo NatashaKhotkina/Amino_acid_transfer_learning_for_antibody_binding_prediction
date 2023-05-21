@@ -12,11 +12,11 @@ Minimize the size of a train dataset with transfer learning or other methods.
 
 ### Transfer-learning
 Transfer learning is used in tasks where a big amount of data cannot be collected for some reason. In this approach, knowledge from one task is transferred to the current task. In this work, we used a dataset of ACE2 binding to mutated sequences as a pretraining dataset before training the model on datasets with neutralizing antibodies.
-![img](images/Transfer_learning_1.jpg)
+![img](images/Transfer_learning.svg)
 
 ### Multi-task
 Multi-task is a machine learning approach where the same information is used for multiple tasks. In current work, predicting escape from different antibodies for the same RBD sequence is considered as "multiple task".
-![img](images/multi_task.jpg)
+![img](images/multi_task.svg)
 
 ## Results
 ### Dependence of ROC AUC on train size
