@@ -46,6 +46,10 @@ All trainand test data used in this project is stored in **data** directory.
 
 All reusable and non-interactive code is stored in **src** package.
 
+## Conclusion
+
+Our results suggest that accurate prediction of antibody escape is possible with smaller train datasets and can be improved by transfer learning.
+
 ## Usage
 
 ### Launch notebook copy in Google Colab (web)
@@ -56,3 +60,7 @@ https://github.com/NatashaKhotkina/Amino_acid_transfer_learning_for_antibody_bin
 Multi-task:
 
 https://github.com/NatashaKhotkina/Amino_acid_transfer_learning_for_antibody_binding_prediction/blob/main/Multi_task_for_AB_binding_prediction.ipynb
+
+## Bibliography
+
+Taft, J. M. et al. Deep mutational learning predicts ACE2 binding and antibody escape to combinatorial mutations in the SARS-CoV-2 receptor-binding domain. Cell 185, 4008 (2022).
