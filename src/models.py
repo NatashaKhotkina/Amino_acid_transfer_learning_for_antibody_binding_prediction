@@ -24,16 +24,19 @@ class LSTMModel(nn.Module):
 
 class LSTMMultiModel(nn.Module):
 
-    def __init__(self, input_size, hidden_size, num_layers, dropout, device):
+    def __init__(self, input_size, hidden_size, num_layers, dropout, antibodies, device):
         super().__init__()
         self.num_layers = num_layers
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, batch_first=True, num_layers=num_layers,
                             dropout=dropout)
         self.fc1 = nn.Linear(hidden_size, 50)
-        self.fc2 = {'ly16': nn.Linear(50, 1).to(device),
-                    'ly555': nn.Linear(50, 1).to(device),
-                    'REGN33': nn.Linear(50, 1).to(device),
-                    'REGN87': nn.Linear(50, 1).to(device)}  # Predict only one value
+        self.fc2 = {}
+        for ab in antibodies:
+            self.fc2[ab] = nn.Linear(50, 1).to(device)
+        # self.fc2 = {'ly16': nn.Linear(50, 1).to(device),
+        #             'ly555': nn.Linear(50, 1).to(device),
+        #             'REGN33': nn.Linear(50, 1).to(device),
+        #             'REGN87': nn.Linear(50, 1).to(device)}  # Predict only one value
         self.relu = nn.ReLU()
         # self.sigmoid = nn.Sigmoid()
 

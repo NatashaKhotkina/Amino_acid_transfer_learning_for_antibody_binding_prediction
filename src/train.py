@@ -45,14 +45,17 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=
 
 
 def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
-                      optimizer, print_epoch, device, targeted_AB):
+                      optimizer, print_epoch, device, antibodies, targeted_AB):
     hist_loss = defaultdict(float)
     iterators = {antibody: iter(loader)
                  for antibody, loader in trainload.items()}
-    is_over = {'ly555': False,
-               'ly16': False,
-               'REGN33': False,
-               'REGN87': False}
+    # is_over = {'ly555': False,
+    #            'ly16': False,
+    #            'REGN33': False,
+    #            'REGN87': False}
+    is_over = {}
+    for ab in antibodies:
+        is_over[ab] = False
     is_over.pop(targeted_AB)
     while not all(is_over.values()):
         for antibody, loader_iter in iterators.items():
@@ -86,7 +89,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
 
 
 def train_multi_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
-                      optim=torch.optim.Adam, print_epoch=False, device='cpu', targeted_AB='ly16',
+                      optim=torch.optim.Adam, print_epoch=False, antibodies, targeted_AB, device='cpu',
                       target_num_epochs=0):
     model.train()
 
@@ -96,7 +99,8 @@ def train_multi_model(model, trainload, num_epochs=20, learning_rate=0.001, crit
     loss_hist = defaultdict(list)
     for ep in range(num_epochs):
         train_epoch_multi(model=model, trainload=trainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
-                          optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
+                          optimizer=optimizer, print_epoch=print_epoch, device=device, antibodies = antibodies,
+                          targeted_AB=targeted_AB)
 
     for ep in range(target_num_epochs):
         train_epoch(model=model, trainload=trainload[targeted_AB], epoch=ep, criterion=criterion, loss_hist=loss_hist,
