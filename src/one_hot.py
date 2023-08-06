@@ -8,10 +8,10 @@ encoding = enc.fit_transform(np.array(aa_alph).reshape(-1, 1)).toarray()
 encoding_dict = dict(zip(aa_alph, encoding))
 
 
-def encoding_func(dataset):
+def encoding_func(dataset, sequence_column_name):
     encoded_list = []
     for i in range(len(dataset)):
-        seq = dataset['junction_aa'].iloc[i]
+        seq = dataset[sequence_column_name].iloc[i]
         seq_encoded = []
         for letter in seq:
             seq_encoded.append(encoding_dict[letter])

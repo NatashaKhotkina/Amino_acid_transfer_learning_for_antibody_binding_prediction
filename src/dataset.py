@@ -19,10 +19,10 @@ class MyDataset(Dataset):
         return features, labels
 
 
-def make_dataloader(table, batch_size=32, shuffle=True):
+def make_dataloader(table, sequence_column_name, label_column_name, batch_size=32, shuffle=True):
     # make torch tensors
-    X_encoded = torch.Tensor(encoding_func(table))
-    y = torch.Tensor(table['Label'].values)
+    X_encoded = torch.Tensor(encoding_func(table, sequence_column_name))
+    y = torch.Tensor(table[label_column_name].values)
 
     # make dataset
     dataset = MyDataset(X_encoded, y)
