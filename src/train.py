@@ -89,7 +89,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
 
 
 def train_multi_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
-                      optim=torch.optim.Adam, print_epoch=False, antibodies, targeted_AB, device='cpu',
+                      optim=torch.optim.Adam, antibodies, targeted_AB, print_epoch=False, device='cpu',
                       target_num_epochs=0):
     model.train()
 
