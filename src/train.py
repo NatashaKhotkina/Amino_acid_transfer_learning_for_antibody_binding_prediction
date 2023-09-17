@@ -1,13 +1,16 @@
-from collections import defaultdict
-
 import torch
+from sklearn.metrics import roc_auc_score
 from torch import nn
+from torch.utils.tensorboard import SummaryWriter
+
+from src.validate import eval_model
 
 
 def train_epoch(model, trainload, epoch, criterion, optimizer,
-                loss_hist, print_epoch=True, device='cpu', targeted_AB=None):
+                train_stat, testload, writer, device, num_epochs_pretrain=0, targeted_ab=None):
     model.train()
     hist_loss = 0
+    roc_auc = 0
     for _, data in enumerate(trainload, 0):  # get batch
         # parse batch
         features, labels = data
@@ -16,8 +19,8 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         # sets the gradients of all optimized tensors to zero.
         optimizer.zero_grad()
         # get outputs
-        if targeted_AB:
-            outputs = model(features, targeted_AB)
+        if targeted_ab:
+            outputs = model(features, targeted_ab)
         else:
             outputs = model(features)
         # calculate loss
@@ -27,42 +30,53 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         # performs a single optimization step (parameter update).
         optimizer.step()
         hist_loss += loss.item()
+        roc_auc += roc_auc_score(labels.unsqueeze(1), outputs)
 
-    if print_epoch:
-        loss_hist.append(hist_loss / len(trainload))
-        print(f"Epoch={epoch} loss={loss_hist[epoch]:.4f}")
+    if train_stat:
+        val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
+                                                                            targeted_ab, device)
+        writer.add_scalars("Loss", {"Validation": val_loss,
+                                    "Train": hist_loss / len(trainload)}, num_epochs_pretrain + epoch)
+
+        writer.add_scalars("ROC AUC", {"Validation": val_roc_auc,
+                                       "Train": roc_auc / len(trainload)}, num_epochs_pretrain + epoch)
+
+        writer.close()
 
 
 def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
-                optim=torch.optim.Adam, print_epoch=True, device='cpu'):
+                optim=torch.optim.Adam, train_stat=False, testload=None, device='cpu'):
     criterion = criterion()
     optimizer = optim(model.parameters(), lr=learning_rate)
 
-    loss_hist = []
+    if train_stat:
+        writer = SummaryWriter(comment=tag)
+    else:
+        writer = None
+
     for ep in range(num_epochs):
-        train_epoch(model=model, trainload=trainload, epoch=ep, criterion=criterion, optimizer=optimizer,
-                    loss_hist=loss_hist, print_epoch=print_epoch, device=device)
+
+        train_epoch(model, trainload, ep, criterion, optimizer,
+                    train_stat, testload, writer, device)
 
 
-def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
-                      optimizer, print_epoch, device, antibodies, targeted_AB):
-    hist_loss = defaultdict(float)
+def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat, testload,
+                      writer, device, antibodies, targeted_ab):
+    hist_loss = 0
+    roc_auc = 0
     iterators = {antibody: iter(loader)
                  for antibody, loader in trainload.items()}
-    # is_over = {'ly555': False,
-    #            'ly16': False,
-    #            'REGN33': False,
-    #            'REGN87': False}
+
     is_over = {}
     for ab in antibodies:
         is_over[ab] = False
-    is_over.pop(targeted_AB)
+    is_over.pop(targeted_ab)
     while not all(is_over.values()):
         for antibody, loader_iter in iterators.items():
             try:
                 features, labels = next(loader_iter)
             except StopIteration:
-                if antibody == targeted_AB:
+                if antibody == targeted_ab:
                     iterators[antibody] = iter(trainload[antibody])
                     features, labels = next(iterators[antibody])
                 else:
@@ -80,85 +94,34 @@ def train_epoch_multi(model, trainload, epoch, criterion, loss_hist,
             loss.backward()
             # performs a single optimization step (parameter update).
             optimizer.step()
-            hist_loss[antibody] += loss.item()
+            if antibody == targeted_ab:
+                hist_loss += loss.item()
+                roc_auc += roc_auc_score(labels.unsqueeze(1), outputs)
 
-    if print_epoch:
-        for antibody in iterators:
-            loss_hist[antibody].append(hist_loss[antibody] / len(trainload[antibody]))
-            print(f"Epoch={epoch} loss={loss_hist[antibody][epoch]}, antibody={antibody}")
+    if train_stat:
+        val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
+                                                                            targeted_ab, device)
+        writer.add_scalars("Loss", {"Validation": val_loss,
+                                    "Train": hist_loss / len(trainload)}, epoch)
+
+        writer.add_scalars("ROC AUC", {"Validation": val_roc_auc,
+                                       "Train": roc_auc / len(trainload)}, epoch)
+
+        writer.close()
 
 
-def train_multi_model(model, trainload, num_epochs, learning_rate, antibodies, targeted_AB,
-                      criterion=nn.BCEWithLogitsLoss,optim=torch.optim.Adam, print_epoch=False,
-                      device='cpu', target_num_epochs=0):
+def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, antibodies, targeted_ab,
+                      criterion=nn.BCEWithLogitsLoss, optim=torch.optim.Adam, train_stat=False, testload=None,
+                      writer=None, device='cpu', target_num_epochs=0):
     model.train()
 
     criterion = criterion()
     optimizer = optim(model.parameters(), lr=learning_rate)
 
-    loss_hist = defaultdict(list)
-    for ep in range(num_epochs):
-        train_epoch_multi(model=model, trainload=trainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
-                          optimizer=optimizer, print_epoch=print_epoch, device=device, antibodies = antibodies,
-                          targeted_AB=targeted_AB)
+    for ep in range(num_epochs_pretrain):
+        train_epoch_multi(model, trainload, ep, criterion, optimizer, train_stat, testload,
+                          writer, device, antibodies, targeted_ab)
 
     for ep in range(target_num_epochs):
-        train_epoch(model=model, trainload=trainload[targeted_AB], epoch=ep, criterion=criterion, loss_hist=loss_hist,
-                    optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
-
-
-# def train_epoch_multi_3ab(model, trainload, epoch, criterion, loss_hist,
-#                           optimizer, print_epoch, device, pretrain_ab):
-#     hist_loss = defaultdict(float)
-#     iterators = {antibody: iter(loader)
-#                  for antibody, loader in trainload.items()}
-#     is_over = {}
-#     for key in pretrain_ab:
-#         is_over[key] = False
-#     while not all(is_over.values()):
-#         for antibody, loader_iter in iterators.items():
-#             try:
-#                 features, labels = next(loader_iter)
-#             except StopIteration:
-#                 is_over[antibody] = True
-#                 continue
-#             features = features.to(device)
-#             labels = labels.to(device)
-#             # sets the gradients of all optimized tensors to zero.
-#             optimizer.zero_grad()
-#             # get outputs
-#             outputs = model(features, antibody)
-#             # calculate loss
-#             loss = criterion(outputs, labels.unsqueeze(1))
-#             # calculate gradients
-#             loss.backward()
-#             # performs a single optimization step (parameter update).
-#             optimizer.step()
-#             hist_loss[antibody] += loss.item()
-#
-#     if print_epoch:
-#         for antibody in iterators:
-#             loss_hist[antibody].append(hist_loss[antibody] / len(trainload[antibody]))
-#             print(f"Epoch={epoch} loss={loss_hist[antibody][epoch]}, antibody={antibody}")
-
-
-# def train_multi_model_3ab(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
-#                           optim=torch.optim.Adam, print_epoch=False, device='cpu', pretrain_ab=None,
-#                           targeted_AB='ly16', target_num_epochs=0):
-#     model.train()
-#
-#     criterion = criterion()
-#     optimizer = optim(model.parameters(), lr=learning_rate)
-#
-#     loss_hist = defaultdict(list)
-#
-#     pretrainload = {}
-#     for ab in pretrain_ab:
-#         pretrainload[ab] = trainload[ab]
-#     for ep in range(num_epochs):
-#         train_epoch_multi_3ab(model=model, trainload=pretrainload, epoch=ep, criterion=criterion, loss_hist=loss_hist,
-#                               optimizer=optimizer, print_epoch=print_epoch, device=device, pretrain_ab=pretrain_ab)
-#
-#     for ep in range(target_num_epochs):
-#         train_epoch(model=model, trainload=trainload[targeted_AB], epoch=ep, criterion=criterion, loss_hist=loss_hist,
-#                     optimizer=optimizer, print_epoch=print_epoch, device=device, targeted_AB=targeted_AB)
+        train_epoch(model, trainload[targeted_AB], ep, criterion, optimizer,
+                    train_stat, testload, writer, device, num_epochs_pretrain, targeted_ab)

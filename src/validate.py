@@ -7,12 +7,13 @@ from torch import nn
 from src.models import LSTMMultiModel
 
 
-def eval_model(model, testload, multi_task_targeted_AB=None, device='cpu'):
+def eval_model(model, testload, criterion, multi_task_targeted_AB=None, device='cpu'):
     accuracy = []
     precision = []
     recall = []
     f1 = []
     roc_auc = []
+    val_loss = 0
     model.eval()
 
     with torch.no_grad():
@@ -23,6 +24,8 @@ def eval_model(model, testload, multi_task_targeted_AB=None, device='cpu'):
                 logits = model(features, multi_task_targeted_AB)
             else:
                 logits = model(features)
+            loss = criterion(logits.cpu(), labels.unsqueeze(1))
+            val_loss += loss.item()
             outputs = nn.Sigmoid()(logits)
             outputs = outputs.squeeze().cpu()
             roc_auc.append(roc_auc_score(labels, outputs))
@@ -37,8 +40,9 @@ def eval_model(model, testload, multi_task_targeted_AB=None, device='cpu'):
     mean_recall = sum(recall) / len(recall)
     mean_f1 = sum(f1) / len(f1)
     mean_roc_auc = sum(roc_auc) / len(roc_auc)
+    mean_loss = val_loss / (len(testload))
 
-    return mean_accuracy, mean_precision, mean_recall, mean_f1, mean_roc_auc
+    return mean_loss, mean_accuracy, mean_precision, mean_recall, mean_f1, mean_roc_auc
 
 
 # def eval_multi_model(model, testload, device='cpu', targeted_AB='ly16'):
