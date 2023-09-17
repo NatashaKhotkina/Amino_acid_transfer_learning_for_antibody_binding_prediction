@@ -9,7 +9,6 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
                 train_stat, testload, writer, device, num_epochs_pretrain=0, targeted_ab=None):
     model.train()
     hist_loss = 0
-    #roc_auc = 0
     for _, data in enumerate(trainload, 0):  # get batch
         # parse batch
         features, labels = data
@@ -31,21 +30,23 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         hist_loss += loss.item()
         #roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
 
+    val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
+                                                                        targeted_ab, device)
     if train_stat:
-        val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
-                                                                            targeted_ab, device)
         writer.add_scalars("Loss", {"Validation": val_loss,
                                     "Train": hist_loss / len(trainload)}, num_epochs_pretrain + epoch)
 
         writer.add_scalars("ROC AUC", {"Validation": val_roc_auc}, num_epochs_pretrain + epoch)
 
         writer.close()
+    return val_loss
 
 
-def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
+def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=10, criterion=nn.BCEWithLogitsLoss,
                 optim=torch.optim.Adam, train_stat=False, testload=None, tag=None, device='cpu'):
     criterion = criterion()
     optimizer = optim(model.parameters(), lr=learning_rate)
+    val_losses = []
 
     if train_stat:
         writer = SummaryWriter(comment=tag)
@@ -54,8 +55,13 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=
 
     for ep in range(num_epochs):
 
-        train_epoch(model, trainload, ep, criterion, optimizer,
-                    train_stat, testload, writer, device)
+        val_loss = train_epoch(model, trainload, ep, criterion, optimizer,
+                               train_stat, testload, writer, device)
+
+        if min(val_losses[-(patience+1):] + [float('+inf')]) <= val_loss:
+            break
+
+        val_losses.append(val_loss)
 
 
 def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat, testload,
@@ -95,19 +101,19 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
             if antibody == targeted_ab:
                 hist_loss += loss.item()
                 #roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
-
+    val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
+                                                                        targeted_ab, device)
     if train_stat:
-        val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
-                                                                            targeted_ab, device)
         writer.add_scalars("Loss", {"Validation": val_loss,
                                     "Train": hist_loss / len(trainload)}, epoch)
 
         writer.add_scalars("ROC AUC", {"Validation": val_roc_auc}, epoch)
 
         writer.close()
+    return val_loss
 
 
-def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, antibodies, targeted_ab,
+def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, patience, antibodies, targeted_ab,
                       criterion=nn.BCEWithLogitsLoss, optim=torch.optim.Adam, train_stat=False, testload=None,
                       tag=None, device='cpu', target_num_epochs=0):
     model.train()
@@ -121,9 +127,22 @@ def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, anti
         writer = None
 
     for ep in range(num_epochs_pretrain):
-        train_epoch_multi(model, trainload, ep, criterion, optimizer, train_stat, testload,
-                          writer, device, antibodies, targeted_ab)
+        val_losses = []
+        val_loss = train_epoch_multi(model, trainload, ep, criterion, optimizer, train_stat, testload,
+                                     writer, device, antibodies, targeted_ab)
+
+        if min(val_losses[-(patience + 1):] + [float('+inf')]) <= val_loss:
+            num_epochs_pretrain = ep
+            break
+
+        val_losses.append(val_loss)
 
     for ep in range(target_num_epochs):
-        train_epoch(model, trainload[targeted_AB], ep, criterion, optimizer,
-                    train_stat, testload, writer, device, num_epochs_pretrain, targeted_ab)
+        val_losses = []
+        val_loss = train_epoch(model, trainload[targeted_ab], ep, criterion, optimizer,
+                               train_stat, testload, writer, device, num_epochs_pretrain, targeted_ab)
+
+        if min(val_losses[-(patience + 1):] + [float('+inf')]) <= val_loss:
+            break
+
+        val_losses.append(val_loss)
