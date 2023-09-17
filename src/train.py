@@ -1,5 +1,4 @@
 import torch
-from sklearn.metrics import roc_auc_score
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 
@@ -10,7 +9,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
                 train_stat, testload, writer, device, num_epochs_pretrain=0, targeted_ab=None):
     model.train()
     hist_loss = 0
-    roc_auc = 0
+    #roc_auc = 0
     for _, data in enumerate(trainload, 0):  # get batch
         # parse batch
         features, labels = data
@@ -30,7 +29,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         # performs a single optimization step (parameter update).
         optimizer.step()
         hist_loss += loss.item()
-        roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
+        #roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
 
     if train_stat:
         val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
@@ -38,8 +37,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         writer.add_scalars("Loss", {"Validation": val_loss,
                                     "Train": hist_loss / len(trainload)}, num_epochs_pretrain + epoch)
 
-        writer.add_scalars("ROC AUC", {"Validation": val_roc_auc,
-                                       "Train": roc_auc / len(trainload)}, num_epochs_pretrain + epoch)
+        writer.add_scalars("ROC AUC", {"Validation": val_roc_auc}, num_epochs_pretrain + epoch)
 
         writer.close()
 
@@ -63,7 +61,7 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=
 def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat, testload,
                       writer, device, antibodies, targeted_ab):
     hist_loss = 0
-    roc_auc = 0
+    #roc_auc = 0
     iterators = {antibody: iter(loader)
                  for antibody, loader in trainload.items()}
 
@@ -96,7 +94,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
             optimizer.step()
             if antibody == targeted_ab:
                 hist_loss += loss.item()
-                roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
+                #roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
 
     if train_stat:
         val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
@@ -104,8 +102,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
         writer.add_scalars("Loss", {"Validation": val_loss,
                                     "Train": hist_loss / len(trainload)}, epoch)
 
-        writer.add_scalars("ROC AUC", {"Validation": val_roc_auc,
-                                       "Train": roc_auc / len(trainload)}, epoch)
+        writer.add_scalars("ROC AUC", {"Validation": val_roc_auc}, epoch)
 
         writer.close()
 
