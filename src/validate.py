@@ -7,7 +7,7 @@ from torch import nn
 from src.models import LSTMMultiModel
 
 
-def eval_model(model, testload, criterion, multi_task_targeted_AB=None, device='cpu'):
+def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
     accuracy = []
     precision = []
     recall = []
