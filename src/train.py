@@ -58,7 +58,7 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
         val_loss = train_epoch(model, trainload, ep, criterion, optimizer,
                                train_stat, testload, writer, device)
 
-        if min(val_losses[-(patience+1):] + [float('+inf')]) <= val_loss:
+        if ep >= patience and min(val_losses[-(patience):]) <= val_loss:
             break
 
         val_losses.append(val_loss)
@@ -131,7 +131,7 @@ def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, pati
         val_loss = train_epoch_multi(model, trainload, ep, criterion, optimizer, train_stat, testload,
                                      writer, device, antibodies, targeted_ab)
 
-        if min(val_losses[-(patience + 1):] + [float('+inf')]) <= val_loss:
+        if ep >= patience and min(val_losses[-(patience):]) <= val_loss:
             num_epochs_pretrain = ep
             break
 
@@ -142,7 +142,7 @@ def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, pati
         val_loss = train_epoch(model, trainload[targeted_ab], ep, criterion, optimizer,
                                train_stat, testload, writer, device, num_epochs_pretrain, targeted_ab)
 
-        if min(val_losses[-(patience + 1):] + [float('+inf')]) <= val_loss:
+        if ep >= patience and min(val_losses[-(patience):]) <= val_loss:
             break
 
         val_losses.append(val_loss)
