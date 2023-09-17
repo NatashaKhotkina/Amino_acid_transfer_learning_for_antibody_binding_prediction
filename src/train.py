@@ -128,20 +128,19 @@ def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, pati
     else:
         writer = None
 
+    val_losses = []
     for ep in range(num_epochs_pretrain):
-        val_losses = []
         val_loss = train_epoch_multi(model, trainload, ep, criterion, optimizer, train_stat, testload,
                                      writer, device, antibodies, targeted_ab)
 
-        print(val_loss)
         if ep >= patience and max(val_losses[-(patience):]) <= val_loss:
             num_epochs_pretrain = ep
             break
 
         val_losses.append(val_loss)
 
+    val_losses = []
     for ep in range(target_num_epochs):
-        val_losses = []
         val_loss = train_epoch(model, trainload[targeted_ab], ep, criterion, optimizer,
                                train_stat, testload, writer, device, num_epochs_pretrain, targeted_ab)
 
