@@ -32,7 +32,8 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         hist_loss += loss.item()
         outputs_cpu = nn.Sigmoid()(outputs).squeeze().cpu()
         print(outputs_cpu.get_device(), labels.cpu().get_device())
-        roc_auc += roc_auc_score(labels.cpu(), outputs_cpu)
+        #roc_auc += roc_auc_score(labels.cpu(), outputs_cpu)
+        raise Exception
 
     if train_stat:
         val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
