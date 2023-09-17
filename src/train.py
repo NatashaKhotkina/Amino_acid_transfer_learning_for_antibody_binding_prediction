@@ -30,7 +30,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         # performs a single optimization step (parameter update).
         optimizer.step()
         hist_loss += loss.item()
-        roc_auc += roc_auc_score(labels.cpu(), outputs.squeeze().cpu())
+        roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
 
     if train_stat:
         val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
@@ -96,7 +96,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
             optimizer.step()
             if antibody == targeted_ab:
                 hist_loss += loss.item()
-                roc_auc += roc_auc_score(labels.cpu(), outputs.squeeze().cpu())
+                roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
 
     if train_stat:
         val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
