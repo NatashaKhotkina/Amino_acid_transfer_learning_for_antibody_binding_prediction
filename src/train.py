@@ -96,7 +96,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
             optimizer.step()
             if antibody == targeted_ab:
                 hist_loss += loss.item()
-                roc_auc += roc_auc_score(labels.unsqueeze(1).cpu().numpy(), outputs.cpu().numpy())
+                roc_auc += roc_auc_score(labels.unsqueeze(1).cpu(), outputs.cpu())
 
     if train_stat:
         val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
