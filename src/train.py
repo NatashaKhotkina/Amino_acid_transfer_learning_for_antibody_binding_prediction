@@ -33,7 +33,6 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
     val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
                                                                         targeted_ab, device)
     if train_stat:
-        print(hist_loss / len(trainload), "train loss")
         writer.add_scalars("Loss", {"Validation": val_loss,
                                     "Train": hist_loss / len(trainload)}, num_epochs_pretrain + epoch)
 
