@@ -57,6 +57,7 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
 
         val_loss = train_epoch(model, trainload, ep, criterion, optimizer,
                                train_stat, testload, writer, device)
+        print(ep, val_loss)
 
         if ep >= patience and min(val_losses[-(patience):]) <= val_loss:
             break
