@@ -33,6 +33,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
     val_loss, accuracy, precision, recall, f1, val_roc_auc = eval_model(model, testload, criterion,
                                                                         targeted_ab, device)
     if train_stat:
+        print(hist_loss / len(trainload), "train loss")
         writer.add_scalars("Loss", {"Validation": val_loss,
                                     "Train": hist_loss / len(trainload)}, num_epochs_pretrain + epoch)
 
@@ -59,7 +60,7 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
                                train_stat, testload, writer, device)
         print(ep, val_loss)
 
-        if ep >= patience and min(val_losses[-(patience):]) <= val_loss:
+        if ep >= patience and max(val_losses[-(patience):]) <= val_loss:
             break
 
         val_losses.append(val_loss)
@@ -132,7 +133,7 @@ def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, pati
         val_loss = train_epoch_multi(model, trainload, ep, criterion, optimizer, train_stat, testload,
                                      writer, device, antibodies, targeted_ab)
 
-        if ep >= patience and min(val_losses[-(patience):]) <= val_loss:
+        if ep >= patience and max(val_losses[-(patience):]) <= val_loss:
             num_epochs_pretrain = ep
             break
 
@@ -143,7 +144,7 @@ def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, pati
         val_loss = train_epoch(model, trainload[targeted_ab], ep, criterion, optimizer,
                                train_stat, testload, writer, device, num_epochs_pretrain, targeted_ab)
 
-        if ep >= patience and min(val_losses[-(patience):]) <= val_loss:
+        if ep >= patience and max(val_losses[-(patience):]) <= val_loss:
             break
 
         val_losses.append(val_loss)
