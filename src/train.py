@@ -45,7 +45,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
 
 
 def train_model(model, trainload, num_epochs=20, learning_rate=0.001, criterion=nn.BCEWithLogitsLoss,
-                optim=torch.optim.Adam, train_stat=False, testload=None, device='cpu'):
+                optim=torch.optim.Adam, train_stat=False, testload=None, tag=None, device='cpu'):
     criterion = criterion()
     optimizer = optim(model.parameters(), lr=learning_rate)
 
@@ -112,11 +112,16 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
 
 def train_multi_model(model, trainload, num_epochs_pretrain, learning_rate, antibodies, targeted_ab,
                       criterion=nn.BCEWithLogitsLoss, optim=torch.optim.Adam, train_stat=False, testload=None,
-                      writer=None, device='cpu', target_num_epochs=0):
+                      tag=None, device='cpu', target_num_epochs=0):
     model.train()
 
     criterion = criterion()
     optimizer = optim(model.parameters(), lr=learning_rate)
+
+    if train_stat:
+        writer = SummaryWriter(comment=tag)
+    else:
+        writer = None
 
     for ep in range(num_epochs_pretrain):
         train_epoch_multi(model, trainload, ep, criterion, optimizer, train_stat, testload,
