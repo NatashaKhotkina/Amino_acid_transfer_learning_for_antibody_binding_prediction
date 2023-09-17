@@ -24,6 +24,8 @@ def eval_model(model, testload, criterion, multi_task_targeted_AB=None, device='
                 logits = model(features, multi_task_targeted_AB)
             else:
                 logits = model(features)
+            print(logits.cpu().get_deviece())
+            print(logits)
             loss = criterion(logits.cpu(), labels.unsqueeze(1))
             val_loss += loss.item()
             outputs = nn.Sigmoid()(logits)
