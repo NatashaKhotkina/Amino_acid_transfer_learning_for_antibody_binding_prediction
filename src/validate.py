@@ -20,8 +20,8 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
         for data in testload:
             features, labels = data
             features = features.to(device)
-            if multi_task_targeted_AB and isinstance(model, LSTMMultiModel):
-                logits = model(features, multi_task_targeted_AB)
+            if targeted_ab and isinstance(model, LSTMMultiModel):
+                logits = model(features, targeted_ab)
             else:
                 logits = model(features)
             loss = criterion(logits.cpu(), labels.unsqueeze(1))
