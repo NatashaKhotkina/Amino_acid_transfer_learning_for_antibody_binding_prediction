@@ -30,7 +30,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         # performs a single optimization step (parameter update).
         optimizer.step()
         hist_loss += loss.item()
-        outputs_cpu = nn.Sigmoid()(outputs).squeeze().cpu()
+        outputs_cpu = nn.functional.sigmoid(outputs).squeeze().cpu()
         print(outputs_cpu.get_device(), labels.cpu().get_device())
         #roc_auc += roc_auc_score(labels.cpu(), outputs_cpu)
         raise Exception
