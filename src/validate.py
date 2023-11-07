@@ -38,7 +38,7 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
             else:
                 labels_ap = labels
                 outputs_ap = outputs
-            average_precision.append(labels_ap, outputs_ap)
+            average_precision.append(average_precision_score(labels_ap, outputs_ap))
 
             outputs = outputs.round()
             accuracy.append(accuracy_score(labels, outputs))
