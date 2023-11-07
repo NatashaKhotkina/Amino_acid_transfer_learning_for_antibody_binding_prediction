@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 import torch
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, average_precision_score
 from torch import nn
 
 from src.models import LSTMMultiModel
@@ -13,6 +13,7 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
     recall = []
     f1 = []
     roc_auc = []
+    average_precision = []
     val_loss = 0
     model.eval()
 
@@ -28,12 +29,23 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
             val_loss += loss.item()
             outputs = nn.Sigmoid()(logits)
             outputs = outputs.squeeze().cpu()
+
             roc_auc.append(roc_auc_score(labels, outputs))
+
+            if labels.sum() > 0.5 * len(labels):
+                labels_ap = 1 - labels
+                outputs_ap = 1 - outputs
+            else:
+                labels_ap = labels
+                outputs_ap = outputs
+            average_precision.append(labels_ap, outputs_ap)
+
             outputs = outputs.round()
             accuracy.append(accuracy_score(labels, outputs))
             precision.append(precision_score(labels, outputs))
             recall.append(recall_score(labels, outputs))
             f1.append(f1_score(labels, outputs))
+
 
     mean_accuracy = sum(accuracy) / len(accuracy)
     mean_precision = sum(precision) / len(precision)
@@ -41,36 +53,6 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
     mean_f1 = sum(f1) / len(f1)
     mean_roc_auc = sum(roc_auc) / len(roc_auc)
     mean_loss = val_loss / (len(testload))
+    mean_average_precision = sum(average_precision) / len(average_precision)
 
-    return mean_loss, mean_accuracy, mean_precision, mean_recall, mean_f1, mean_roc_auc
-
-
-# def eval_multi_model(model, testload, device='cpu', targeted_AB='ly16'):
-#     accuracy = []
-#     precision = []
-#     recall = []
-#     f1 = []
-#     roc_auc = []
-#     model.eval()
-#
-#     with torch.no_grad():
-#         for data in testload[targeted_AB]:
-#             features, labels = data
-#             features = features.to(device)
-#             labels = labels
-#             logits = model(features, targeted_AB)
-#             outputs = nn.Sigmoid()(logits)
-#             outputs = outputs.squeeze().cpu()
-#             roc_auc.append(roc_auc_score(labels, outputs))
-#             outputs = outputs.round()
-#             accuracy.append(accuracy_score(labels, outputs))
-#             precision.append(precision_score(labels, outputs))
-#             recall.append(recall_score(labels, outputs))
-#             f1.append(f1_score(labels, outputs))
-#
-#     mean_accuracy = sum(accuracy) / len(accuracy)
-#     mean_precision = sum(precision) / len(precision)
-#     mean_recall = sum(recall) / len(recall)
-#     mean_f1 = sum(f1) / len(f1)
-#     mean_roc_auc = sum(roc_auc) / len(roc_auc)
-#     return mean_accuracy, mean_precision, mean_recall, mean_f1, mean_roc_auc
+    return mean_loss, mean_accuracy, mean_precision, mean_recall, mean_f1, mean_roc_auc, mean_average_precision
