@@ -68,15 +68,6 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
 
         val_losses.append(val_loss)
 
-        if ep in [2, 3, 4, 5]:
-            for data in testload:
-                features, labels = data
-                features = features.to(device)
-                logits = model(features)
-                outputs = nn.Sigmoid()(logits)
-                outputs = outputs.squeeze().cpu()
-                print(f'epoch is {ep}, logits: {logits}, outputs: {outputs}')
-
 
 def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat, testload,
                       writer, device, antibodies, targeted_ab):
