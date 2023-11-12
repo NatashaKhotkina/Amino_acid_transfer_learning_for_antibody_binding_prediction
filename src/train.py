@@ -28,7 +28,6 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         # performs a single optimization step (parameter update).
         optimizer.step()
         hist_loss += loss.item()
-        #roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
 
     val_loss, accuracy, precision, recall, f1, val_roc_auc, val_average_precision = eval_model(
         model, testload, criterion, targeted_ab, device)
@@ -67,6 +66,15 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
             break
 
         val_losses.append(val_loss)
+
+        if ep in [2, 3, 4, 5]:
+            for data in testload:
+                features, labels = data
+                features = features.to(device)
+                logits = model(features)
+                outputs = nn.Sigmoid()(logits)
+                outputs = outputs.squeeze().cpu()
+                print(f'epoch is {ep}, logits: {logits}, outputs: {outputs}')
 
 
 def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat, testload,
