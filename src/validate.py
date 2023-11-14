@@ -43,8 +43,8 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
 
             outputs = outputs.round()
             accuracy.append(accuracy_score(labels, outputs))
-            precision.append(precision_score(labels, outputs))
-            recall.append(recall_score(labels, outputs))
+            precision.append(precision_score(labels, outputs, zero_division=0.0))
+            recall.append(recall_score(labels, outputs, zero_division=0.0))
             f1.append(f1_score(labels, outputs))
 
 
