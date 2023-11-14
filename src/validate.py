@@ -32,13 +32,14 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
 
             roc_auc.append(roc_auc_score(labels, outputs))
 
-            if labels.sum() > 0.5 * len(labels):
-                labels_ap = 1 - labels
-                outputs_ap = 1 - outputs
-            else:
-                labels_ap = labels
-                outputs_ap = outputs
-            average_precision.append(average_precision_score(labels_ap, outputs_ap))
+            # if labels.sum() > 0.5 * len(labels):
+            #     labels_ap = 1 - labels
+            #     outputs_ap = 1 - outputs
+            # else:
+            #     labels_ap = labels
+            #     outputs_ap = outputs
+            # average_precision.append(average_precision_score(labels_ap, outputs_ap))
+            average_precision.append(average_precision_score(labels, outputs))
 
             outputs = outputs.round()
             accuracy.append(accuracy_score(labels, outputs))
