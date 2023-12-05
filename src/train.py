@@ -63,7 +63,6 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
                                train_stat, testload, writer, device)
 
         if ep >= patience and max(val_losses[-(patience):]) <= val_loss:
-            print(ep)
             break
 
         val_losses.append(val_loss)
