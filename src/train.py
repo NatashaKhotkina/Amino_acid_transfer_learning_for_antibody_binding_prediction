@@ -71,7 +71,6 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
 def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat, testload,
                       writer, device, antibodies, targeted_ab):
     hist_loss = 0
-    #roc_auc = 0
     iterators = {antibody: iter(loader)
                  for antibody, loader in trainload.items()}
 
@@ -104,7 +103,6 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
             optimizer.step()
             if antibody == targeted_ab:
                 hist_loss += loss.item()
-                #roc_auc += roc_auc_score(labels.cpu(), nn.Sigmoid()(outputs).squeeze().cpu())
     val_loss, accuracy, precision, recall, f1, val_roc_auc, val_average_precision = eval_model(
         model, testload, criterion, targeted_ab, device)
     model.train()
