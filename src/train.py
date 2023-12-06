@@ -116,7 +116,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
     else:
         val_loss_list, val_roc_auc_list = [], []
         for antibody, testload_ab in testload.items():
-            val_loss, _ *, val_roc_auc, val_average_precision = eval_model(
+            val_loss, *_, val_roc_auc, val_average_precision = eval_model(
                 model, testload_ab, criterion, antibody, device)
             val_loss_list.append(val_loss)
             val_roc_auc_list.append(val_roc_auc)
