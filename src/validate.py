@@ -15,6 +15,8 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu', outpu
     roc_auc = []
     average_precision = []
     val_loss = 0
+    output_tensor = torch.Tensor()
+    label_tensor = torch.Tensor()
     model.eval()
 
     with torch.no_grad():
@@ -42,14 +44,18 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu', outpu
             average_precision.append(average_precision_score(labels, outputs))
 
             if output_filename is not None:
-                print(outputs)
+                output_tensor = torch.cat((output_tensor, outputs))
+                label_tensor = torch.cat((label_tensor, labels))
+
             outputs = outputs.round()
             accuracy.append(accuracy_score(labels, outputs))
             precision.append(precision_score(labels, outputs, zero_division=0.0))
             recall.append(recall_score(labels, outputs, zero_division=0.0))
             f1.append(f1_score(labels, outputs))
 
-
+    if output_filename is not None:
+        torch.save(output_tensor, f'outputs_{output_filename}')
+        torch.save(label_tensor, f'labels_{output_filename}')
     mean_accuracy = sum(accuracy) / len(accuracy)
     mean_precision = sum(precision) / len(precision)
     mean_recall = sum(recall) / len(recall)
