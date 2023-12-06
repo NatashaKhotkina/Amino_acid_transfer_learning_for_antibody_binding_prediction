@@ -32,7 +32,7 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
 
     if isinstance(testload, dict):
         testload = testload[targeted_ab]
-    val_loss, _*, val_roc_auc, val_average_precision = eval_model(
+    val_loss, *_, val_roc_auc, val_average_precision = eval_model(
         model, testload, criterion, targeted_ab, device)
 
     *_, train_roc_auc, train_average_precision = eval_model(
@@ -111,7 +111,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
                 hist_loss += loss.item()
 
     if isinstance(testload, DataLoader):
-        val_loss, _*, val_roc_auc, val_average_precision = eval_model(
+        val_loss, *_, val_roc_auc, val_average_precision = eval_model(
             model, testload, criterion, targeted_ab, device)
     else:
         val_loss_list, val_roc_auc_list = [], []
