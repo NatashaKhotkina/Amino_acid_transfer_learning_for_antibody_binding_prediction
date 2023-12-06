@@ -7,7 +7,7 @@ from torch import nn
 from src.models import LSTMMultiModel
 
 
-def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
+def eval_model(model, testload, criterion, targeted_ab=None, device='cpu', output_filename=None):
     accuracy = []
     precision = []
     recall = []
@@ -41,6 +41,8 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
             # average_precision.append(average_precision_score(labels_ap, outputs_ap))
             average_precision.append(average_precision_score(labels, outputs))
 
+            if output_filename is not None:
+                print(outputs)
             outputs = outputs.round()
             accuracy.append(accuracy_score(labels, outputs))
             precision.append(precision_score(labels, outputs, zero_division=0.0))
