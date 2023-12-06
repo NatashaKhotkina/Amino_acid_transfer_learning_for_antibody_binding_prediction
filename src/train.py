@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from src.validate import eval_model
@@ -29,7 +30,9 @@ def train_epoch(model, trainload, epoch, criterion, optimizer,
         optimizer.step()
         hist_loss += loss.item()
 
-    val_loss, accuracy, precision, recall, f1, val_roc_auc, val_average_precision = eval_model(
+    if isinstance(testload, dict):
+        testload = testload[targeted_ab]
+    val_loss, _*, val_roc_auc, val_average_precision = eval_model(
         model, testload, criterion, targeted_ab, device)
 
     *_, train_roc_auc, train_average_precision = eval_model(
@@ -71,13 +74,15 @@ def train_model(model, trainload, num_epochs=20, learning_rate=0.001, patience=1
 def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat, testload,
                       writer, device, antibodies, targeted_ab):
     hist_loss = 0
+    targeted_ab_repeats = 1
     iterators = {antibody: iter(loader)
                  for antibody, loader in trainload.items()}
 
     is_over = {}
     for ab in antibodies:
         is_over[ab] = False
-    is_over.pop(targeted_ab)
+    if targeted_ab:
+        is_over.pop(targeted_ab)
     while not all(is_over.values()):
         for antibody, loader_iter in iterators.items():
             try:
@@ -86,6 +91,7 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
                 if antibody == targeted_ab:
                     iterators[antibody] = iter(trainload[antibody])
                     features, labels = next(iterators[antibody])
+                    targeted_ab_repeats += 1
                 else:
                     is_over[antibody] = True
                 continue
@@ -101,14 +107,31 @@ def train_epoch_multi(model, trainload, epoch, criterion, optimizer, train_stat,
             loss.backward()
             # performs a single optimization step (parameter update).
             optimizer.step()
-            if antibody == targeted_ab:
+            if antibody == targeted_ab or targeted_ab is None:
                 hist_loss += loss.item()
-    val_loss, accuracy, precision, recall, f1, val_roc_auc, val_average_precision = eval_model(
-        model, testload, criterion, targeted_ab, device)
+
+    if isinstance(testload, DataLoader):
+        val_loss, _*, val_roc_auc, val_average_precision = eval_model(
+            model, testload, criterion, targeted_ab, device)
+    else:
+        val_loss_list, val_roc_auc_list = [], []
+        for antibody, testload_ab in testload.items():
+            val_loss, _ *, val_roc_auc, val_average_precision = eval_model(
+                model, testload_ab, criterion, antibody, device)
+            val_loss_list.append(val_loss)
+            val_roc_auc_list.append(val_roc_auc)
+        val_loss = sum(val_loss_list) / len(val_loss_list)
+        val_roc_auc = sum(val_roc_auc_list) / len(val_roc_auc_list)
+
+
     model.train()
     if train_stat:
+        if targeted_ab:
+            hist_loss_mean = hist_loss / (len(trainload[targeted_ab] * targeted_ab_repeats))
+        else:
+            hist_loss_mean = hist_loss / sum((len(val) for val in trainload.values()))
         writer.add_scalars("Loss", {"Validation": val_loss,
-                                    "Train": hist_loss / len(trainload)}, epoch)
+                                    "Train": hist_loss_mean}, epoch)
 
         writer.add_scalars("ROC AUC", {"Validation": val_roc_auc}, epoch)
 
