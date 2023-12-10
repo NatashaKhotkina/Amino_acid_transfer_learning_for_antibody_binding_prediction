@@ -47,7 +47,8 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu', print
             if print_output:
                 print(labels)
                 print(outputs)
-            outputs = outputs.round()
+            # outputs = outputs.round()
+            outputs = (outputs > 0.09).type(torch.int32)
             accuracy.append(accuracy_score(labels, outputs))
             precision.append(precision_score(labels, outputs, zero_division=0.0))
             recall.append(recall_score(labels, outputs, zero_division=0.0))
