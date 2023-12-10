@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from src.models import LSTMMultiModel
 
 
-def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
+def eval_model(model, testload, criterion, targeted_ab=None, device='cpu', print_output=False):
     accuracy = []
     precision = []
     recall = []
@@ -44,6 +44,9 @@ def eval_model(model, testload, criterion, targeted_ab=None, device='cpu'):
             roc_auc.append(roc_auc_score(labels, outputs))
             average_precision.append(average_precision_score(labels, outputs))
 
+            if print_output:
+                print(labels)
+                print(outputs)
             outputs = outputs.round()
             accuracy.append(accuracy_score(labels, outputs))
             precision.append(precision_score(labels, outputs, zero_division=0.0))
